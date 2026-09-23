@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>よしもと若手 好き顔9選ソーター</title>
+  <title>好き顔9選ソーター</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", sans-serif;
-      background: #f4f5f7;
+      background: #f8f9fa;
       color: #222;
       display: flex;
       flex-direction: column;
@@ -17,61 +17,98 @@
       padding: 16px;
       min-height: 100vh;
     }
-    header { text-align: center; margin-bottom: 16px; }
-    h1 { font-size: 1.3rem; font-weight: 700; color: #111; }
-    .progress { font-size: 0.85rem; color: #666; margin-top: 4px; }
 
-    /* バトル画面 */
-    #battle-view { width: 100%; max-width: 440px; }
+    header {
+      width: 100%;
+      max-width: 440px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    h1 {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #111;
+      margin-bottom: 12px;
+    }
+
+    /* 進捗バー */
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      font-weight: bold;
+      color: #555;
+      margin-bottom: 6px;
+    }
+    .progress-bar-bg {
+      width: 100%;
+      height: 10px;
+      background: #e0e0e0;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #ff758c, #ff7eb3);
+      border-radius: 5px;
+      transition: width 0.2s ease;
+    }
+
+    /* 対戦カード */
+    #battle-view {
+      width: 100%;
+      max-width: 440px;
+    }
     .battle-box {
       display: flex;
       gap: 12px;
       justify-content: center;
-      margin-top: 12px;
     }
     .card {
       flex: 1;
       background: #fff;
-      border-radius: 12px;
+      border-radius: 14px;
       padding: 10px;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
       cursor: pointer;
       text-align: center;
-      transition: transform 0.08s ease, box-shadow 0.08s ease;
+      transition: transform 0.08s ease;
       user-select: none;
     }
     .card:active {
       transform: scale(0.96);
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
     .img-wrap {
       width: 100%;
       aspect-ratio: 1 / 1;
-      background: #e9ecef;
-      border-radius: 8px;
+      background: #eee;
+      border-radius: 10px;
       overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
     .card img {
       width: 100%;
       height: 100%;
       object-fit: cover;
+      display: block;
     }
     .card .combi {
       font-size: 0.75rem;
       color: #777;
       margin-top: 8px;
+      min-height: 1.1em;
     }
     .card .name {
       font-size: 0.95rem;
       font-weight: bold;
-      color: #222;
+      color: #111;
       margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    /* 結果画面（3×3グリッド） */
+    /* 結果画面（3×3） */
     #result-view {
       display: none;
       width: 100%;
@@ -82,14 +119,14 @@
       background: #ffffff;
       padding: 16px;
       border-radius: 16px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-      margin-bottom: 16px;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.08);
+      margin-bottom: 20px;
     }
     .capture-title {
-      font-size: 1.1rem;
+      font-size: 1.15rem;
       font-weight: 800;
       letter-spacing: 0.05em;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
       color: #111;
     }
     .grid {
@@ -100,14 +137,15 @@
     .grid-item {
       position: relative;
       aspect-ratio: 1 / 1;
-      background: #e9ecef;
-      border-radius: 6px;
+      background: #eee;
+      border-radius: 8px;
       overflow: hidden;
     }
     .grid-item img {
       width: 100%;
       height: 100%;
       object-fit: cover;
+      display: block;
     }
     .grid-label {
       position: absolute;
@@ -118,26 +156,23 @@
       color: #fff;
       font-size: 0.7rem;
       line-height: 1.2;
-      padding: 12px 4px 4px 4px;
+      padding: 12px 2px 4px 2px;
       text-align: center;
-    }
-    .grid-label .rank {
-      font-weight: bold;
-      color: #ffd166;
-      margin-right: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    /* 操作ボタン */
     .btn {
       background: #111;
       color: #fff;
       border: none;
-      padding: 12px 28px;
+      padding: 14px 32px;
       font-size: 0.95rem;
       font-weight: bold;
       border-radius: 30px;
       cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
     .btn:active { opacity: 0.85; }
   </style>
@@ -146,18 +181,24 @@
 
   <header>
     <h1>好き顔9選ソーター</h1>
-    <div class="progress" id="progress">準備中...</div>
+    <div class="progress-info">
+      <span id="ratio-text">進捗: 0%</span>
+      <span id="settled-text">0 / 100人 決定</span>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progress-fill"></div>
+    </div>
   </header>
 
   <!-- 1. ソート画面 -->
   <div id="battle-view">
     <div class="battle-box">
-      <div class="card" onclick="choose(0)">
+      <div class="card" onclick="pick(0)">
         <div class="img-wrap"><img id="img-a" src="" alt=""></div>
         <div class="combi" id="combi-a"></div>
         <div class="name" id="name-a"></div>
       </div>
-      <div class="card" onclick="choose(1)">
+      <div class="card" onclick="pick(1)">
         <div class="img-wrap"><img id="img-b" src="" alt=""></div>
         <div class="combi" id="combi-b"></div>
         <div class="name" id="name-b"></div>
@@ -165,7 +206,7 @@
     </div>
   </div>
 
-  <!-- 2. 結果画面 -->
+  <!-- 2. 結果画面（3×3） -->
   <div id="result-view">
     <div id="capture-area" class="capture-box">
       <div class="capture-title">私の好き顔9選</div>
@@ -175,122 +216,211 @@
   </div>
 
   <script>
-    // 候補リスト（全23名）
-    // imgには保存した画像ファイルへのパス（例: "images/tanaka.jpg"）を指定してください。
-    // ※ 現在はダミー画像（仮のプレースホルダー）を設定してあります。
+    // 指定された全100名リスト
     const candidates = [
-      { combi: "アポロ軍曹", name: "田中", img: "https://placehold.jp/300x300.png?text=田中" },
-      { combi: "アポロ軍曹", name: "かりむ", img: "https://placehold.jp/300x300.png?text=かりむ" },
-      { combi: "cacao", name: "浦田スターク", img: "https://placehold.jp/300x300.png?text=浦田スターク" },
-      { combi: "cacao", name: "たっぺい", img: "https://placehold.jp/300x300.png?text=たっぺい" },
-      { combi: "cacao", name: "高橋", img: "https://placehold.jp/300x300.png?text=高橋" },
-      { combi: "コブラマン", name: "マサキ", img: "https://placehold.jp/300x300.png?text=マサキ" },
-      { combi: "コブラマン", name: "別府ジカキン", img: "https://placehold.jp/300x300.png?text=別府ジカキン" },
-      { combi: "ごぞうろっぷ", name: "ゆう", img: "https://placehold.jp/300x300.png?text=ゆう" },
-      { combi: "ごぞうろっぷ", name: "ソウタヤマモト", img: "https://placehold.jp/300x300.png?text=ソウタヤマモト" },
-      { combi: "三遊間", name: "稲継諒", img: "https://placehold.jp/300x300.png?text=稲継諒" },
-      { combi: "三遊間", name: "さくらい", img: "https://placehold.jp/300x300.png?text=さくらい" },
-      { combi: "シャガール", name: "きらく", img: "https://placehold.jp/300x300.png?text=きらく" },
-      { combi: "シャガール", name: "弓月一日", img: "https://placehold.jp/300x300.png?text=弓月一日" },
-      { combi: "タイムキーパー", name: "まついあきら", img: "https://placehold.jp/300x300.png?text=まついあきら" },
-      { combi: "タイムキーパー", name: "ひでき", img: "https://placehold.jp/300x300.png?text=ひでき" },
-      { combi: "ときヲりぴーと", name: "りぴーと", img: "https://placehold.jp/300x300.png?text=りぴーと" },
-      { combi: "ときヲりぴーと", name: "ときヲ", img: "https://placehold.jp/300x300.png?text=ときヲ" },
-      { combi: "どんちっち", name: "竹岡航太", img: "https://placehold.jp/300x300.png?text=竹岡航太" },
-      { combi: "どんちっち", name: "青木智紀", img: "https://placehold.jp/300x300.png?text=青木智紀" },
-      { combi: "半年記念", name: "あると", img: "https://placehold.jp/300x300.png?text=あると" },
-      { combi: "半年記念", name: "YOSH!NO", img: "https://placehold.jp/300x300.png?text=YOSH!NO" },
-      { combi: "ファンファーレと熱狂", name: "こうちゃん", img: "https://placehold.jp/300x300.png?text=こうちゃん" },
-      { combi: "ファンファーレと熱狂", name: "奥慎太郎", img: "https://placehold.jp/300x300.png?text=奥慎太郎" }
+      { combi: "アポロ軍曹", name: "かりむ", img: "karimu.jpg" },
+      { combi: "アポロ軍曹", name: "田中", img: "tanaka_apollo.jpg" },
+      { combi: "cacao", name: "高橋", img: "takahashi.jpg" },
+      { combi: "cacao", name: "浦田スターク", img: "urata.jpg" },
+      { combi: "cacao", name: "たっぺい", img: "tappei.jpg" },
+      { combi: "コブラマン", name: "マサキ", img: "masaki.jpg" },
+      { combi: "コブラマン", name: "別府ジカキン", img: "beppu.jpg" },
+      { combi: "ごぞうろっぷ", name: "ゆう", img: "yu.jpg" },
+      { combi: "ごぞうろっぷ", name: "ソウタヤマモト", img: "soutayamamoto.jpg" },
+      { combi: "三遊間", name: "稲継諒", img: "inatsugu.jpg" },
+      { combi: "三遊間", name: "さくらい", img: "sakurai.jpg" },
+      { combi: "シャガール", name: "弓月一日", img: "yuzuki.jpg" },
+      { combi: "シャガール", name: "きらく", img: "kiraku.jpg" },
+      { combi: "タイムキーパー", name: "まついあきら", img: "matsui.jpg" },
+      { combi: "タイムキーパー", name: "ひでき", img: "hideki.jpg" },
+      { combi: "ときヲりぴーと", name: "ときヲ", img: "tokiwo.jpg" },
+      { combi: "ときヲりぴーと", name: "りぴーと", img: "ripi-to.jpg" },
+      { combi: "どんちっち", name: "青木智紀", img: "aoki.jpg" },
+      { combi: "どんちっち", name: "竹岡航太", img: "takeoka.jpg" },
+      { combi: "半年記念日", name: "あると", img: "aruto.jpg" },
+      { combi: "半年記念日", name: "YOSH!NO", img: "yoshino.jpg" },
+      { combi: "ファンファーレと熱狂", name: "こうちゃん", img: "kouchan.jpg" },
+      { combi: "ファンファーレと熱狂", name: "奥慎太郎", img: "oku.jpg" },
+      { combi: "オニイチャン", name: "府上ふが", img: "fugami.jpg" },
+      { combi: "オニイチャン", name: "こんちゃん", img: "konchan.jpg" },
+      { combi: "空前メテオ", name: "茶屋", img: "chaya.jpg" },
+      { combi: "空前メテオ", name: "大門正尚", img: "daimon.jpg" },
+      { combi: "ぐろう", name: "家村涼太", img: "iemura.jpg" },
+      { combi: "ぐろう", name: "高松巧", img: "takamatsu.jpg" },
+      { combi: "シスター", name: "週末", img: "shuumatsu.jpg" },
+      { combi: "シスター", name: "井坂ひ孫", img: "isaka.jpg" },
+      { combi: "ジョックロック", name: "福本ユウショウ", img: "fukumoto.jpg" },
+      { combi: "ジョックロック", name: "ゆうじろー", img: "yujiro.jpg" },
+      { combi: "マーメイド", name: "田村境祐", img: "tamura.jpg" },
+      { combi: "マーメイド", name: "テクニック。", img: "technic.jpg" },
+      { combi: "ライムギ", name: "なつみ", img: "natsumi.jpg" },
+      { combi: "ライムギ", name: "れんぺい", img: "renpei.jpg" },
+      { combi: "オーケストラ", name: "石井勝太郎", img: "ishii.jpg" },
+      { combi: "オーケストラ", name: "河野拳也", img: "kouno.jpg" },
+      { combi: "キョンビ", name: "斎藤", img: "saitou.jpg" },
+      { combi: "キョンビ", name: "ナカジマ", img: "nakajima.jpg" },
+      { combi: "九ノ段", name: "宮田祐輔", img: "miyata.jpg" },
+      { combi: "九ノ段", name: "児島クソデカおにく", img: "kojima.jpg" },
+      { combi: "シカノシンプ", name: "北川", img: "kitagawa.jpg" },
+      { combi: "シカノシンプ", name: "ゆのき", img: "yunoki.jpg" },
+      { combi: "例えば炎", name: "タキノルイ", img: "takinorui.jpg" },
+      { combi: "例えば炎", name: "田上", img: "tanoue.jpg" },
+      { combi: "電気ジュース", name: "福沢葉", img: "fukuzawa.jpg" },
+      { combi: "電気ジュース", name: "藤本もふ", img: "fujimoto.jpg" },
+      { combi: "天ロクの丘", name: "奥野賢一", img: "okuno.jpg" },
+      { combi: "天ロクの丘", name: "馬田バジリスク", img: "matsuda.jpg" },
+      { combi: "ドライブドライブ", name: "八旗遼", img: "yahata.jpg" },
+      { combi: "ドライブドライブ", name: "田中祐輝", img: "tanaka_drive.jpg" },
+      { combi: "マーティー", name: "真平", img: "shinpei.jpg" },
+      { combi: "マーティー", name: "ホソ", img: "hoso.jpg" },
+      { combi: "宛先プレーン", name: "荒木健太", img: "araki.jpg" },
+      { combi: "宛先プレーン", name: "たかまん", img: "takaman.jpg" },
+      { combi: "釈迦虎", name: "岡本峻", img: "okamoto.jpg" },
+      { combi: "釈迦虎", name: "久保バトル泰志", img: "kubo.jpg" },
+      { combi: "彼岸花", name: "坂本拓馬", img: "sakamoto.jpg" },
+      { combi: "彼岸花", name: "田中雄大", img: "tanaka_higan.jpg" },
+      { combi: "満丸", name: "統哉", img: "touya.jpg" },
+      { combi: "満丸", name: "巻野", img: "makino.jpg" },
+      { combi: "ミケネ系", name: "べっち", img: "betchi.jpg" },
+      { combi: "ミケネ系", name: "吉田ザオリク", img: "yoshida.jpg" },
+      { combi: "ミステリーハンター", name: "上木", img: "ueki.jpg" },
+      { combi: "ミステリーハンター", name: "芝", img: "shiba.jpg" },
+      { combi: "あんよの日", name: "やまち", img: "yamachi.jpg" },
+      { combi: "あんよの日", name: "朱海", img: "akemi.jpg" },
+      { combi: "遠足ダイスキタイム", name: "たつ", img: "tatsu.jpg" },
+      { combi: "遠足ダイスキタイム", name: "トン吉", img: "tonkichi.jpg" },
+      { combi: "東雲", name: "細見 晃", img: "hosomi.jpg" },
+      { combi: "東雲", name: "かおる", img: "kaoru.jpg" },
+      { combi: "生姜猫", name: "川﨑", img: "kawasaki.jpg" },
+      { combi: "生姜猫", name: "ケージュ", img: "ke-ju.jpg" },
+      { combi: "生姜猫", name: "カンサイ", img: "kansai.jpg" },
+      { combi: "入学卒業", name: "にーはら", img: "niihara.jpg" },
+      { combi: "入学卒業", name: "鳴瀬", img: "naruse.jpg" },
+      { combi: "野良レール", name: "やまぐち", img: "yamaguchi.jpg" },
+      { combi: "野良レール", name: "てすけ", img: "tesuke.jpg" },
+      { combi: "バリアシオン", name: "大津尚斗", img: "otsu.jpg" },
+      { combi: "バリアシオン", name: "飛田翼", img: "tobita.jpg" },
+      { combi: "はるかぜに告ぐ", name: "とんず", img: "tonzu.jpg" },
+      { combi: "はるかぜに告ぐ", name: "花妃", img: "hanaki.jpg" },
+      { combi: "シンボリル", name: "かみむら", img: "kamimura.jpg" },
+      { combi: "シンボリル", name: "高田純", img: "takada.jpg" },
+      { combi: "おもしろジャンケン", name: "その他しょうたろう", img: "sonota.jpg" },
+      { combi: "おもしろジャンケン", name: "嘉津じゃない方", img: "katsujanai.jpg" },
+      { combi: "おもしろジャンケン", name: "嘉津翔太", img: "katsu.jpg" },
+      { combi: "ちあき", name: "金井", img: "kanai.jpg" },
+      { combi: "ちあき", name: "小倉", img: "ogura.jpg" },
+      { combi: "ゆくえ", name: "浅原康太", img: "asahara.jpg" },
+      { combi: "ゆくえ", name: "井ノ口たまご", img: "inokuchi.jpg" },
+      { combi: "グゴゴ0.9", name: "良心", img: "ryoushin.jpg" },
+      { combi: "グゴゴ0.9", name: "友人", img: "yuujin.jpg" },
+      { combi: "ピン", name: "西野", img: "nishino.jpg" },
+      { combi: "ピン", name: "清川雄司", img: "kiyokawa.jpg" },
+      { combi: "ピン", name: "岡田浩太朗", img: "okada.jpg" }
     ];
 
-    // マージソート・トーナメントロジック
-    let subArrays = [];
-    let currentMerged = [];
-    let leftArr = [], rightArr = [];
-    let leftIdx = 0, rightIdx = 0;
-    let stepCount = 0;
+    const TOTAL_MEMBERS = candidates.length; // 100名
+    let selectedWinners = [];
+    let droppedLosers = [];
+    let currentPool = [];
+    let nextPool = [];
+    let cardA = null, cardB = null;
 
     function init() {
-      // 候補順をランダムシャッフル
-      const shuffled = [...candidates].sort(() => Math.random() - 0.5);
-      subArrays = shuffled.map(item => [item]);
-      nextPair();
+      // 100名を完全ランダムにシャッフル
+      currentPool = [...candidates].sort(() => Math.random() - 0.5);
+      updateProgress();
+      nextMatch();
     }
 
-    function nextPair() {
-      if (leftArr.length === 0 && rightArr.length === 0) {
-        if (subArrays.length === 1) {
-          finish(subArrays[0]);
-          return;
+    function updateProgress() {
+      const settledCount = selectedWinners.length + droppedLosers.length;
+      const ratio = Math.min(100, Math.round((settledCount / TOTAL_MEMBERS) * 100));
+
+      document.getElementById('ratio-text').innerText = `進捗: ${ratio}%`;
+      document.getElementById('settled-text').innerText = `${settledCount} / ${TOTAL_MEMBERS}人 決定`;
+      document.getElementById('progress-fill').style.width = `${ratio}%`;
+    }
+
+    function nextMatch() {
+      if (selectedWinners.length >= 9) {
+        finish();
+        return;
+      }
+
+      // 残り全メンバーが9名以下になったら全員当選
+      if (selectedWinners.length + currentPool.length + nextPool.length <= 9) {
+        selectedWinners.push(...currentPool, ...nextPool);
+        finish();
+        return;
+      }
+
+      // 現在のプールが残り1名以下の場合は次ラウンドへ
+      if (currentPool.length < 2) {
+        if (currentPool.length === 1) {
+          nextPool.push(currentPool.pop()); // 不戦勝で勝ち上がり
         }
-        leftArr = subArrays.shift();
-        rightArr = subArrays.shift();
-        leftIdx = 0;
-        rightIdx = 0;
-        currentMerged = [];
+        currentPool = nextPool;
+        nextPool = [];
+        return nextMatch();
       }
 
-      if (leftIdx >= leftArr.length) {
-        currentMerged.push(...rightArr.slice(rightIdx));
-        finishSubArray();
+      cardA = currentPool.shift();
+      cardB = currentPool.shift();
+
+      // 画像エラー時の代替フォールバック表示
+      const imgAEl = document.getElementById('img-a');
+      const imgBEl = document.getElementById('img-b');
+
+      imgAEl.onerror = () => { imgAEl.src = `https://placehold.jp/300x300.png?text=${encodeURIComponent(cardA.name)}`; };
+      imgBEl.onerror = () => { imgBEl.src = `https://placehold.jp/300x300.png?text=${encodeURIComponent(cardB.name)}`; };
+
+      imgAEl.src = cardA.img;
+      document.getElementById('combi-a').innerText = cardA.combi;
+      document.getElementById('name-a').innerText = cardA.name;
+
+      imgBEl.src = cardB.img;
+      document.getElementById('combi-b').innerText = cardB.combi;
+      document.getElementById('name-b').innerText = cardB.name;
+    }
+
+    function pick(choice) {
+      const winner = (choice === 0) ? cardA : cardB;
+      const loser  = (choice === 0) ? cardB : cardA;
+
+      nextPool.push(winner);
+      droppedLosers.push(loser);
+
+      const remainingTotal = currentPool.length + nextPool.length + selectedWinners.length;
+      if (remainingTotal === 9) {
+        selectedWinners.push(...currentPool, ...nextPool);
+        finish();
         return;
       }
-      if (rightIdx >= rightArr.length) {
-        currentMerged.push(...leftArr.slice(leftIdx));
-        finishSubArray();
-        return;
-      }
 
-      stepCount++;
-      document.getElementById('progress').innerText = `比較中：第 ${stepCount} 問`;
-
-      const a = leftArr[leftIdx];
-      const b = rightArr[rightIdx];
-
-      document.getElementById('img-a').src = a.img;
-      document.getElementById('combi-a').innerText = a.combi;
-      document.getElementById('name-a').innerText = a.name;
-
-      document.getElementById('img-b').src = b.img;
-      document.getElementById('combi-b').innerText = b.combi;
-      document.getElementById('name-b').innerText = b.name;
+      updateProgress();
+      nextMatch();
     }
 
-    function choose(val) {
-      if (val === 0) {
-        currentMerged.push(leftArr[leftIdx++]);
-      } else {
-        currentMerged.push(rightArr[rightIdx++]);
-      }
-      nextPair();
-    }
+    function finish() {
+      document.getElementById('ratio-text').innerText = `進捗: 100%`;
+      document.getElementById('settled-text').innerText = `${TOTAL_MEMBERS} / ${TOTAL_MEMBERS}人 決定`;
+      document.getElementById('progress-fill').style.width = `100%`;
 
-    function finishSubArray() {
-      subArrays.push(currentMerged);
-      leftArr = [];
-      rightArr = [];
-      nextPair();
-    }
-
-    function finish(sortedList) {
       document.getElementById('battle-view').style.display = 'none';
-      document.getElementById('progress').innerText = "ソート完了！";
       document.getElementById('result-view').style.display = 'block';
 
       const grid = document.getElementById('grid');
       grid.innerHTML = '';
 
-      // 上位9名を取り出し
-      const top9 = sortedList.slice(0, 9);
-      top9.forEach((item, i) => {
+      const top9 = selectedWinners.slice(0, 9);
+      top9.forEach(item => {
         const itemEl = document.createElement('div');
         itemEl.className = 'grid-item';
+        
+        const fallbackSrc = `https://placehold.jp/300x300.png?text=${encodeURIComponent(item.name)}`;
         itemEl.innerHTML = `
-          <img src="${item.img}" crossorigin="anonymous">
-          <div class="grid-label">
-            <span class="rank">${i + 1}</span>${item.name}
-          </div>
+          <img src="${item.img}" onerror="this.src='${fallbackSrc}'" crossorigin="anonymous">
+          <div class="grid-label">${item.name}</div>
         `;
         grid.appendChild(itemEl);
       });
@@ -300,7 +430,7 @@
       const target = document.getElementById('capture-area');
       html2canvas(target, { scale: 2, useCORS: true }).then(canvas => {
         const a = document.createElement('a');
-        a.download = 'suki-kao-9.png';
+        a.download = 'my-best9.png';
         a.href = canvas.toDataURL('image/png');
         a.click();
       });
