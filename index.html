@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>好き顔9選ソーター</title>
+  <title>よしもと若手 好き顔9選ソーター</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -20,15 +20,25 @@
 
     header {
       width: 100%;
-      max-width: 440px;
+      max-width: 460px;
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
     h1 {
       font-size: 1.25rem;
       font-weight: 800;
       color: #111;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
+    }
+    .phase-badge {
+      display: inline-block;
+      background: #111;
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: bold;
+      padding: 3px 10px;
+      border-radius: 12px;
+      margin-bottom: 8px;
     }
 
     /* 進捗バー */
@@ -42,64 +52,80 @@
     }
     .progress-bar-bg {
       width: 100%;
-      height: 10px;
+      height: 8px;
       background: #e0e0e0;
-      border-radius: 5px;
+      border-radius: 4px;
       overflow: hidden;
     }
     .progress-bar-fill {
       width: 0%;
       height: 100%;
       background: linear-gradient(90deg, #ff758c, #ff7eb3);
-      border-radius: 5px;
+      border-radius: 4px;
       transition: width 0.2s ease;
     }
 
-    /* 対戦カード */
-    #battle-view {
+    /* メインコンテナ */
+    #quiz-view {
       width: 100%;
-      max-width: 440px;
+      max-width: 460px;
     }
-    .battle-box {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
+    .instruction {
+      text-align: center;
+      font-size: 0.9rem;
+      color: #555;
+      margin-bottom: 12px;
+      font-weight: 600;
     }
-    .card {
-      flex: 1;
+
+    /* 4択グリッド (2x2) */
+    .grid-choices {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .choice-card {
       background: #fff;
-      border-radius: 14px;
-      padding: 10px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+      border-radius: 12px;
+      padding: 8px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.06);
       cursor: pointer;
       text-align: center;
-      transition: transform 0.08s ease;
+      border: 3px solid transparent;
+      transition: border-color 0.15s ease, transform 0.08s ease;
       user-select: none;
     }
-    .card:active {
-      transform: scale(0.96);
+    .choice-card:active {
+      transform: scale(0.97);
+    }
+    .choice-card.selected {
+      border-color: #ff4d6d;
+      background: #fff5f7;
     }
     .img-wrap {
       width: 100%;
       aspect-ratio: 1 / 1;
       background: #eee;
-      border-radius: 10px;
+      border-radius: 8px;
       overflow: hidden;
     }
-    .card img {
+    .choice-card img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: block;
     }
-    .card .combi {
-      font-size: 0.75rem;
+    .combi {
+      font-size: 0.7rem;
       color: #777;
-      margin-top: 8px;
-      min-height: 1.1em;
+      margin-top: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
-    .card .name {
-      font-size: 0.95rem;
+    .name {
+      font-size: 0.88rem;
       font-weight: bold;
       color: #111;
       margin-top: 2px;
@@ -108,7 +134,29 @@
       text-overflow: ellipsis;
     }
 
-    /* 結果画面（3×3） */
+    /* ボタンエリア */
+    .action-box {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      width: 100%;
+    }
+    .btn {
+      flex: 1;
+      padding: 13px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      border-radius: 26px;
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      transition: opacity 0.15s ease;
+    }
+    .btn:active { opacity: 0.85; }
+    .btn-next { background: #ff4d6d; color: #fff; }
+    .btn-skip { background: #e9ecef; color: #555; }
+
+    /* 結果画面 */
     #result-view {
       display: none;
       width: 100%;
@@ -120,7 +168,7 @@
       padding: 16px;
       border-radius: 16px;
       box-shadow: 0 6px 24px rgba(0,0,0,0.08);
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
     .capture-title {
       font-size: 1.15rem;
@@ -129,7 +177,7 @@
       margin-bottom: 14px;
       color: #111;
     }
-    .grid {
+    .result-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 6px;
@@ -162,62 +210,59 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
-
-    .btn {
+    .rank-tag {
+      font-weight: 800;
+      color: #ffd166;
+      margin-right: 2px;
+    }
+    .btn-save {
       background: #111;
       color: #fff;
-      border: none;
-      padding: 14px 32px;
+      padding: 14px 36px;
+      border-radius: 30px;
       font-size: 0.95rem;
       font-weight: bold;
-      border-radius: 30px;
+      border: none;
       cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
-    .btn:active { opacity: 0.85; }
   </style>
 </head>
 <body>
 
   <header>
     <h1>好き顔9選ソーター</h1>
+    <div class="phase-badge" id="phase-badge">予選ラウンド</div>
     <div class="progress-info">
-      <span id="ratio-text">進捗: 0%</span>
-      <span id="settled-text">0 / 100人 決定</span>
+      <span id="progress-text">準備中...</span>
+      <span id="settled-text">0 / 100人</span>
     </div>
     <div class="progress-bar-bg">
       <div class="progress-bar-fill" id="progress-fill"></div>
     </div>
   </header>
 
-  <!-- 1. ソート画面 -->
-  <div id="battle-view">
-    <div class="battle-box">
-      <div class="card" onclick="pick(0)">
-        <div class="img-wrap"><img id="img-a" src="" alt=""></div>
-        <div class="combi" id="combi-a"></div>
-        <div class="name" id="name-a"></div>
-      </div>
-      <div class="card" onclick="pick(1)">
-        <div class="img-wrap"><img id="img-b" src="" alt=""></div>
-        <div class="combi" id="combi-b"></div>
-        <div class="name" id="name-b"></div>
-      </div>
+  <!-- ソート画面（予選・本戦兼用） -->
+  <div id="quiz-view">
+    <div class="instruction" id="instruction-text">気になる顔を最大2人まで選んでください</div>
+    <div class="grid-choices" id="choices-container"></div>
+    <div class="action-box" id="action-box">
+      <button class="btn btn-skip" id="btn-skip" onclick="submitSelection(true)">未選択で次へ</button>
+      <button class="btn btn-next" id="btn-next" onclick="submitSelection(false)">決定して次へ</button>
     </div>
   </div>
 
-  <!-- 2. 結果画面（3×3） -->
+  <!-- 結果画面（3×3画像） -->
   <div id="result-view">
     <div id="capture-area" class="capture-box">
       <div class="capture-title">私の好き顔9選</div>
-      <div class="grid" id="grid"></div>
+      <div class="result-grid" id="result-grid"></div>
     </div>
-    <button class="btn" onclick="saveImage()">画像を保存する</button>
+    <button class="btn-save" onclick="saveImage()">画像を保存する</button>
   </div>
 
   <script>
-    // 指定された全100名リスト
-    const candidates = [
+    // 参加者100名リスト
+    const rawCandidates = [
       { combi: "アポロ軍曹", name: "かりむ", img: "karimu.jpg" },
       { combi: "アポロ軍曹", name: "田中", img: "tanaka_apollo.jpg" },
       { combi: "cacao", name: "高橋", img: "takahashi.jpg" },
@@ -318,109 +363,208 @@
       { combi: "ピン", name: "岡田浩太朗", img: "okada.jpg" }
     ];
 
-    const TOTAL_MEMBERS = candidates.length; // 100名
-    let selectedWinners = [];
-    let droppedLosers = [];
-    let currentPool = [];
-    let nextPool = [];
-    let cardA = null, cardB = null;
+    let currentPhase = "preliminary"; // "preliminary" or "main"
+    let prelimGroups = [];
+    let prelimIndex = 0;
+    let selectedIndices = new Set();
+    let prelimSelectedPeople = [];
+    let prelimRejectedPeople = [];
+
+    // 本戦用ステート
+    let final36 = [];
+    let mainQuestions = [];
+    let mainQIndex = 0;
+    let scores = {};
 
     function init() {
-      // 100名を完全ランダムにシャッフル
-      currentPool = [...candidates].sort(() => Math.random() - 0.5);
-      updateProgress();
-      nextMatch();
+      // 100名をシャッフルして4人×25組に分ける
+      const shuffled = [...rawCandidates].sort(() => Math.random() - 0.5);
+      prelimGroups = [];
+      for (let i = 0; i < shuffled.length; i += 4) {
+        prelimGroups.push(shuffled.slice(i, i + 4));
+      }
+      prelimIndex = 0;
+      prelimSelectedPeople = [];
+      prelimRejectedPeople = [];
+      showPrelimQuestion();
     }
 
-    function updateProgress() {
-      const settledCount = selectedWinners.length + droppedLosers.length;
-      const ratio = Math.min(100, Math.round((settledCount / TOTAL_MEMBERS) * 100));
+    // --- 予選（100名 → 36名） ---
+    function showPrelimQuestion() {
+      selectedIndices.clear();
+      const group = prelimGroups[prelimIndex];
 
-      document.getElementById('ratio-text').innerText = `進捗: ${ratio}%`;
-      document.getElementById('settled-text').innerText = `${settledCount} / ${TOTAL_MEMBERS}人 決定`;
-      document.getElementById('progress-fill').style.width = `${ratio}%`;
+      const processedCount = prelimIndex * 4;
+      document.getElementById('phase-badge').innerText = "予選（100名 → 36名選出）";
+      document.getElementById('progress-text').innerText = `組 ${prelimIndex + 1} / ${prelimGroups.length}`;
+      document.getElementById('settled-text').innerText = `${processedCount} / 100人`;
+      document.getElementById('progress-fill').style.width = `${(processedCount / 100) * 100}%`;
+      document.getElementById('instruction-text').innerText = "気になる顔を最大2人まで選んでください（0人でも可）";
+
+      renderCards(group, 2);
     }
 
-    function nextMatch() {
-      if (selectedWinners.length >= 9) {
-        finish();
+    function renderCards(members, maxPick) {
+      const container = document.getElementById('choices-container');
+      container.innerHTML = '';
+
+      members.forEach((m, idx) => {
+        const card = document.createElement('div');
+        card.className = 'choice-card';
+        card.id = `card-${idx}`;
+        
+        const fallbackSrc = `https://placehold.jp/300x300.png?text=${encodeURIComponent(m.name)}`;
+        card.innerHTML = `
+          <div class="img-wrap">
+            <img src="${m.img}" onerror="this.src='${fallbackSrc}'" crossorigin="anonymous">
+          </div>
+          <div class="combi">${m.combi}</div>
+          <div class="name">${m.name}</div>
+        `;
+
+        card.onclick = () => toggleSelect(idx, maxPick);
+        container.appendChild(card);
+      });
+    }
+
+    function toggleSelect(idx, maxPick) {
+      if (maxPick === 1) {
+        // 本戦（1人のみ即時選択）
+        selectedIndices.clear();
+        selectedIndices.add(idx);
+        document.querySelectorAll('.choice-card').forEach((c, i) => {
+          c.classList.toggle('selected', i === idx);
+        });
+        submitSelection(false);
         return;
       }
 
-      // 残り全メンバーが9名以下になったら全員当選
-      if (selectedWinners.length + currentPool.length + nextPool.length <= 9) {
-        selectedWinners.push(...currentPool, ...nextPool);
-        finish();
-        return;
+      // 予選（最大2人選択）
+      if (selectedIndices.has(idx)) {
+        selectedIndices.delete(idx);
+      } else {
+        if (selectedIndices.size >= maxPick) return;
+        selectedIndices.add(idx);
       }
 
-      // 現在のプールが残り1名以下の場合は次ラウンドへ
-      if (currentPool.length < 2) {
-        if (currentPool.length === 1) {
-          nextPool.push(currentPool.pop()); // 不戦勝で勝ち上がり
+      document.querySelectorAll('.choice-card').forEach((c, i) => {
+        c.classList.toggle('selected', selectedIndices.has(i));
+      });
+    }
+
+    function submitSelection(isSkip) {
+      if (currentPhase === "preliminary") {
+        const group = prelimGroups[prelimIndex];
+        if (isSkip) {
+          prelimRejectedPeople.push(...group);
+        } else {
+          group.forEach((m, idx) => {
+            if (selectedIndices.has(idx)) {
+              prelimSelectedPeople.push(m);
+            } else {
+              prelimRejectedPeople.push(m);
+            }
+          });
         }
-        currentPool = nextPool;
-        nextPool = [];
-        return nextMatch();
+
+        prelimIndex++;
+        if (prelimIndex < prelimGroups.length) {
+          showPrelimQuestion();
+        } else {
+          finalizePrelim();
+        }
+      } else {
+        // 本戦
+        if (selectedIndices.size === 0) return;
+        const pickedIdx = [...selectedIndices][0];
+        const winner = mainQuestions[mainQIndex][pickedIdx];
+        scores[winner.name] = (scores[winner.name] || 0) + 1;
+
+        mainQIndex++;
+        if (mainQIndex < mainQuestions.length) {
+          showMainQuestion();
+        } else {
+          finishMain();
+        }
       }
-
-      cardA = currentPool.shift();
-      cardB = currentPool.shift();
-
-      // 画像エラー時の代替フォールバック表示
-      const imgAEl = document.getElementById('img-a');
-      const imgBEl = document.getElementById('img-b');
-
-      imgAEl.onerror = () => { imgAEl.src = `https://placehold.jp/300x300.png?text=${encodeURIComponent(cardA.name)}`; };
-      imgBEl.onerror = () => { imgBEl.src = `https://placehold.jp/300x300.png?text=${encodeURIComponent(cardB.name)}`; };
-
-      imgAEl.src = cardA.img;
-      document.getElementById('combi-a').innerText = cardA.combi;
-      document.getElementById('name-a').innerText = cardA.name;
-
-      imgBEl.src = cardB.img;
-      document.getElementById('combi-b').innerText = cardB.combi;
-      document.getElementById('name-b').innerText = cardB.name;
     }
 
-    function pick(choice) {
-      const winner = (choice === 0) ? cardA : cardB;
-      const loser  = (choice === 0) ? cardB : cardA;
-
-      nextPool.push(winner);
-      droppedLosers.push(loser);
-
-      const remainingTotal = currentPool.length + nextPool.length + selectedWinners.length;
-      if (remainingTotal === 9) {
-        selectedWinners.push(...currentPool, ...nextPool);
-        finish();
-        return;
+    // 予選終了時：過不足を調整して正確に36名にする
+    function finalizePrelim() {
+      if (prelimSelectedPeople.length >= 36) {
+        final36 = prelimSelectedPeople.slice(0, 36);
+      } else {
+        const needed = 36 - prelimSelectedPeople.length;
+        const fill = prelimRejectedPeople.sort(() => Math.random() - 0.5).slice(0, needed);
+        final36 = [...prelimSelectedPeople, ...fill];
       }
-
-      updateProgress();
-      nextMatch();
+      startMainPhase();
     }
 
-    function finish() {
-      document.getElementById('ratio-text').innerText = `進捗: 100%`;
-      document.getElementById('settled-text').innerText = `${TOTAL_MEMBERS} / ${TOTAL_MEMBERS}人 決定`;
-      document.getElementById('progress-fill').style.width = `100%`;
+    // --- 本戦（36名 → 4択1人選択で9位まで決定） ---
+    function startMainPhase() {
+      currentPhase = "main";
+      document.getElementById('phase-badge').innerText = "本戦（36名 → 好き顔9選決定）";
+      document.getElementById('instruction-text').innerText = "一番好きな顔を1人選んでください";
+      document.getElementById('btn-skip').style.display = 'none'; // 本戦はスキップなし
+      document.getElementById('btn-next').style.display = 'none'; // カードタップで即決定
 
-      document.getElementById('battle-view').style.display = 'none';
+      // 36名それぞれにスコア初期化
+      scores = {};
+      final36.forEach(m => { scores[m.name] = 0; });
+
+      // 4人ずつ均等に比較されるよう、シャッフルしたグループ対戦を複数ラウンド組む
+      mainQuestions = [];
+      const rounds = 3; // 各メンバーが複数回4択に登場し正確に順位付け
+      for (let r = 0; r < rounds; r++) {
+        const pool = [...final36].sort(() => Math.random() - 0.5);
+        for (let i = 0; i < pool.length; i += 4) {
+          mainQuestions.push(pool.slice(i, i + 4));
+        }
+      }
+      mainQIndex = 0;
+      showMainQuestion();
+    }
+
+    function showMainQuestion() {
+      selectedIndices.clear();
+      const group = mainQuestions[mainQIndex];
+
+      const pct = Math.round((mainQIndex / mainQuestions.length) * 100);
+      document.getElementById('progress-text').innerText = `本戦: ${mainQIndex + 1} / ${mainQuestions.length} 問`;
+      document.getElementById('settled-text').innerText = `${pct}% 完了`;
+      document.getElementById('progress-fill').style.width = `${pct}%`;
+
+      renderCards(group, 1);
+    }
+
+    function finishMain() {
+      document.getElementById('progress-text').innerText = "ソート完了！";
+      document.getElementById('settled-text').innerText = "100% 完了";
+      document.getElementById('progress-fill').style.width = "100%";
+
+      document.getElementById('quiz-view').style.display = 'none';
       document.getElementById('result-view').style.display = 'block';
 
-      const grid = document.getElementById('grid');
+      // スコアの高い順にソート（同点はランダム）
+      const sorted = [...final36].sort((a, b) => {
+        const scoreDiff = (scores[b.name] || 0) - (scores[a.name] || 0);
+        return scoreDiff !== 0 ? scoreDiff : Math.random() - 0.5;
+      });
+
+      const top9 = sorted.slice(0, 9);
+      const grid = document.getElementById('result-grid');
       grid.innerHTML = '';
 
-      const top9 = selectedWinners.slice(0, 9);
-      top9.forEach(item => {
+      top9.forEach((item, idx) => {
         const itemEl = document.createElement('div');
         itemEl.className = 'grid-item';
-        
         const fallbackSrc = `https://placehold.jp/300x300.png?text=${encodeURIComponent(item.name)}`;
         itemEl.innerHTML = `
           <img src="${item.img}" onerror="this.src='${fallbackSrc}'" crossorigin="anonymous">
-          <div class="grid-label">${item.name}</div>
+          <div class="grid-label">
+            <span class="rank-tag">${idx + 1}位</span>${item.name}
+          </div>
         `;
         grid.appendChild(itemEl);
       });
