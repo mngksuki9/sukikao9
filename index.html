@@ -254,10 +254,73 @@
       font-weight: bold;
       border: none;
       cursor: pointer;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
 
-    /* 36人全員の順位表テキスト */
+    /* X（Twitter）共有・コピーボックスエリア */
+    .share-box {
+      background: #fff;
+      padding: 16px;
+      border-radius: 16px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    .share-box-title {
+      font-size: 0.95rem;
+      font-weight: bold;
+      color: #111;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .share-textarea {
+      width: 100%;
+      height: 110px;
+      padding: 10px;
+      font-size: 0.85rem;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: #fdfdfd;
+      resize: none;
+      font-family: inherit;
+      line-height: 1.4;
+      color: #333;
+    }
+    .share-btn-group {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .btn-copy {
+      flex: 1;
+      background: #e9ecef;
+      color: #333;
+      padding: 10px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      border-radius: 20px;
+      border: none;
+      cursor: pointer;
+    }
+    .btn-x-share {
+      flex: 1;
+      background: #000;
+      color: #fff;
+      padding: 10px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      border-radius: 20px;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* 36人全員の順位表 */
     .ranking-list-box {
       background: #fff;
       padding: 16px;
@@ -352,11 +415,24 @@
 
   <!-- 4. 結果画面 -->
   <div id="result-view">
+    <!-- 3×3画像保存エリア -->
     <div id="capture-area" class="capture-box">
       <div class="capture-title">私の好き顔9選</div>
       <div class="result-grid" id="result-grid"></div>
     </div>
     <button class="btn-save" onclick="saveImage()">画像を保存する</button>
+
+    <!-- X共有・ポスト用コピーボックス -->
+    <div class="share-box">
+      <div class="share-box-title">
+        <span>📢 結果をXでシェアする</span>
+      </div>
+      <textarea id="share-text" class="share-textarea" readonly></textarea>
+      <div class="share-btn-group">
+        <button class="btn-copy" id="btn-copy-text" onclick="copyShareText()">テキストをコピー</button>
+        <a id="btn-x-link" class="btn-x-share" href="#" target="_blank" rel="noopener noreferrer">Xでポスト</a>
+      </div>
+    </div>
 
     <!-- 本戦36名の詳細順位表 -->
     <div class="ranking-list-box">
@@ -366,6 +442,8 @@
   </div>
 
   <script>
+    const TITLE_TEXT = "🎙️よしもと漫才劇場翔 好き顔9選🎙️";
+
     const rawCandidates = [
       { combi: "アポロ軍曹", name: "かりむ", img: "karimu.jpg" },
       { combi: "アポロ軍曹", name: "田中", img: "tanaka_a.jpg" },
@@ -467,12 +545,10 @@
       { combi: "ピン", name: "岡田浩太朗", img: "okada.jpg" }
     ];
 
-    // ==========================================
-    // 1. 予選ステート
-    // ==========================================
+    // 予選ステート
     let prelimGroups = [];
     let prelimIndex = 0;
-    let prelimHistory = []; // 戻るボタン用の履歴管理
+    let prelimHistory = [];
     let selectedIndices = new Set();
     let final36 = [];
 
@@ -490,7 +566,6 @@
     function showPrelimQuestion() {
       selectedIndices.clear();
 
-      // 前に戻って再回答する場合、過去の選択を復元
       if (prelimHistory[prelimIndex]) {
         selectedIndices = new Set(prelimHistory[prelimIndex]);
       }
@@ -529,7 +604,7 @@
       if (selectedIndices.has(idx)) {
         selectedIndices.delete(idx);
       } else {
-        if (selectedIndices.size >= 3) return; // 最大3人まで選択可能
+        if (selectedIndices.size >= 3) return;
         selectedIndices.add(idx);
       }
       document.querySelectorAll('#prelim-choices .card').forEach((c, i) => {
@@ -571,7 +646,6 @@
         });
       });
 
-      // 36名にぴったり調整
       if (selected.length >= 36) {
         final36 = selected.slice(0, 36);
       } else {
@@ -580,7 +654,6 @@
         final36 = [...selected, ...fill];
       }
 
-      // ワンクッション画面へ切り替え
       document.getElementById('prelim-view').style.display = 'none';
       document.getElementById('intermission-view').style.display = 'block';
       document.getElementById('phase-badge').innerText = "予選完了";
@@ -589,9 +662,7 @@
       document.getElementById('progress-fill').style.width = "100%";
     }
 
-    // ==========================================
-    // 2. 本戦ステート（マージソート式 二者択一）
-    // ==========================================
+    // 本戦ステート
     let subArrays = [];
     let currentMerged = [];
     let leftArr = [], rightArr = [];
@@ -604,10 +675,9 @@
       document.getElementById('main-view').style.display = 'block';
       document.getElementById('phase-badge').innerText = "本戦（詳細順位決定）";
 
-      // 36名をシャッフルしてマージソート初期化
       const shuffled36 = [...final36].sort(() => Math.random() - 0.5);
       subArrays = shuffled36.map(item => [item]);
-      estimatedTotalSteps = Math.ceil(36 * Math.log2(36)); // 約185問想定
+      estimatedTotalSteps = Math.ceil(36 * Math.log2(36));
       mainStep = 0;
 
       nextMainPair();
@@ -668,7 +738,6 @@
       } else if (choice === 1) {
         currentMerged.push(rightArr[rightIdx++]);
       } else if (choice === 'both') {
-        // 両方好き：ランダムな順序で両方勝ち上がり枠へ進める
         if (Math.random() < 0.5) {
           currentMerged.push(leftArr[leftIdx++]);
           currentMerged.push(rightArr[rightIdx++]);
@@ -687,9 +756,7 @@
       nextMainPair();
     }
 
-    // ==========================================
-    // 3. 結果発表
-    // ==========================================
+    // 結果発表
     function finishMain(finalSorted36) {
       document.getElementById('main-view').style.display = 'none';
       document.getElementById('result-view').style.display = 'block';
@@ -697,7 +764,7 @@
       document.getElementById('settled-text').innerText = "100% 完了";
       document.getElementById('progress-fill').style.width = "100%";
 
-      // 上位9名のグリッド画像
+      // 1. 上位9名のグリッド画像
       const top9 = finalSorted36.slice(0, 9);
       const grid = document.getElementById('result-grid');
       grid.innerHTML = '';
@@ -715,7 +782,19 @@
         grid.appendChild(itemEl);
       });
 
-      // 36名全員の順位表（文字のみ）
+      // 2. X（Twitter）ポスト用テキストの生成
+      const siteUrl = window.location.href;
+      const top3Text = `🥇1位: ${top9[0].name} (${top9[0].combi})\n🥈2位: ${top9[1].name} (${top9[1].combi})\n🥉3位: ${top9[2].name} (${top9[2].combi})`;
+
+      const shareContent = `${TITLE_TEXT}\n\n私のベスト3はこちら！\n${top3Text}\n\n▼あなたの好き顔9選を作ってみよう\n${siteUrl}\n\n#マンゲキ翔好き顔9選`;
+
+      document.getElementById('share-text').value = shareContent;
+
+      // X共有ボタンのリンクURL生成
+      const twitterShareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareContent)}`;
+      document.getElementById('btn-x-link').href = twitterShareUrl;
+
+      // 3. 36名全員の順位表
       const rankingList = document.getElementById('ranking-list');
       rankingList.innerHTML = '';
 
@@ -728,6 +807,22 @@
           <span class="ranking-name">${item.name}</span>
         `;
         rankingList.appendChild(li);
+      });
+    }
+
+    // クリップボードへコピー
+    function copyShareText() {
+      const copyText = document.getElementById('share-text');
+      copyText.select();
+      copyText.setSelectionRange(0, 99999); // モバイル対応
+
+      navigator.clipboard.writeText(copyText.value).then(() => {
+        const copyBtn = document.getElementById('btn-copy-text');
+        const originalText = copyBtn.innerText;
+        copyBtn.innerText = "コピーしました！✨";
+        setTimeout(() => {
+          copyBtn.innerText = originalText;
+        }, 2000);
       });
     }
 
