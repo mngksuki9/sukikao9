@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>よしもと若手 好き顔9選ソーター</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", sans-serif;
+      background: #f4f5f7;
+      color: #222;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px;
+      min-height: 100vh;
+    }
+    header { text-align: center; margin-bottom: 16px; }
+    h1 { font-size: 1.3rem; font-weight: 700; color: #111; }
+    .progress { font-size: 0.85rem; color: #666; margin-top: 4px; }
+
+    /* バトル画面 */
+    #battle-view { width: 100%; max-width: 440px; }
+    .battle-box {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 12px;
+    }
+    .card {
+      flex: 1;
+      background: #fff;
+      border-radius: 12px;
+      padding: 10px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+      cursor: pointer;
+      text-align: center;
+      transition: transform 0.08s ease, box-shadow 0.08s ease;
+      user-select: none;
+    }
+    .card:active {
+      transform: scale(0.96);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .img-wrap {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background: #e9ecef;
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .card .combi {
+      font-size: 0.75rem;
+      color: #777;
+      margin-top: 8px;
+    }
+    .card .name {
+      font-size: 0.95rem;
+      font-weight: bold;
+      color: #222;
+      margin-top: 2px;
+    }
+
+    /* 結果画面（3×3グリッド） */
+    #result-view {
+      display: none;
+      width: 100%;
+      max-width: 440px;
+      text-align: center;
+    }
+    .capture-box {
+      background: #ffffff;
+      padding: 16px;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      margin-bottom: 16px;
+    }
+    .capture-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      margin-bottom: 12px;
+      color: #111;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+    .grid-item {
+      position: relative;
+      aspect-ratio: 1 / 1;
+      background: #e9ecef;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .grid-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .grid-label {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(transparent, rgba(0, 0, 0, 0.75));
+      color: #fff;
+      font-size: 0.7rem;
+      line-height: 1.2;
+      padding: 12px 4px 4px 4px;
+      text-align: center;
+    }
+    .grid-label .rank {
+      font-weight: bold;
+      color: #ffd166;
+      margin-right: 2px;
+    }
+
+    /* 操作ボタン */
+    .btn {
+      background: #111;
+      color: #fff;
+      border: none;
+      padding: 12px 28px;
+      font-size: 0.95rem;
+      font-weight: bold;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+    .btn:active { opacity: 0.85; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>好き顔9選ソーター</h1>
+    <div class="progress" id="progress">準備中...</div>
+  </header>
+
+  <!-- 1. ソート画面 -->
+  <div id="battle-view">
+    <div class="battle-box">
+      <div class="card" onclick="choose(0)">
+        <div class="img-wrap"><img id="img-a" src="" alt=""></div>
+        <div class="combi" id="combi-a"></div>
+        <div class="name" id="name-a"></div>
+      </div>
+      <div class="card" onclick="choose(1)">
+        <div class="img-wrap"><img id="img-b" src="" alt=""></div>
+        <div class="combi" id="combi-b"></div>
+        <div class="name" id="name-b"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. 結果画面 -->
+  <div id="result-view">
+    <div id="capture-area" class="capture-box">
+      <div class="capture-title">私の好き顔9選</div>
+      <div class="grid" id="grid"></div>
+    </div>
+    <button class="btn" onclick="saveImage()">画像を保存する</button>
+  </div>
+
+  <script>
+    // 候補リスト（全23名）
+    // imgには保存した画像ファイルへのパス（例: "images/tanaka.jpg"）を指定してください。
+    // ※ 現在はダミー画像（仮のプレースホルダー）を設定してあります。
+    const candidates = [
+      { combi: "アポロ軍曹", name: "田中", img: "https://placehold.jp/300x300.png?text=田中" },
+      { combi: "アポロ軍曹", name: "かりむ", img: "https://placehold.jp/300x300.png?text=かりむ" },
+      { combi: "cacao", name: "浦田スターク", img: "https://placehold.jp/300x300.png?text=浦田スターク" },
+      { combi: "cacao", name: "たっぺい", img: "https://placehold.jp/300x300.png?text=たっぺい" },
+      { combi: "cacao", name: "高橋", img: "https://placehold.jp/300x300.png?text=高橋" },
+      { combi: "コブラマン", name: "マサキ", img: "https://placehold.jp/300x300.png?text=マサキ" },
+      { combi: "コブラマン", name: "別府ジカキン", img: "https://placehold.jp/300x300.png?text=別府ジカキン" },
+      { combi: "ごぞうろっぷ", name: "ゆう", img: "https://placehold.jp/300x300.png?text=ゆう" },
+      { combi: "ごぞうろっぷ", name: "ソウタヤマモト", img: "https://placehold.jp/300x300.png?text=ソウタヤマモト" },
+      { combi: "三遊間", name: "稲継諒", img: "https://placehold.jp/300x300.png?text=稲継諒" },
+      { combi: "三遊間", name: "さくらい", img: "https://placehold.jp/300x300.png?text=さくらい" },
+      { combi: "シャガール", name: "きらく", img: "https://placehold.jp/300x300.png?text=きらく" },
+      { combi: "シャガール", name: "弓月一日", img: "https://placehold.jp/300x300.png?text=弓月一日" },
+      { combi: "タイムキーパー", name: "まついあきら", img: "https://placehold.jp/300x300.png?text=まついあきら" },
+      { combi: "タイムキーパー", name: "ひでき", img: "https://placehold.jp/300x300.png?text=ひでき" },
+      { combi: "ときヲりぴーと", name: "りぴーと", img: "https://placehold.jp/300x300.png?text=りぴーと" },
+      { combi: "ときヲりぴーと", name: "ときヲ", img: "https://placehold.jp/300x300.png?text=ときヲ" },
+      { combi: "どんちっち", name: "竹岡航太", img: "https://placehold.jp/300x300.png?text=竹岡航太" },
+      { combi: "どんちっち", name: "青木智紀", img: "https://placehold.jp/300x300.png?text=青木智紀" },
+      { combi: "半年記念", name: "あると", img: "https://placehold.jp/300x300.png?text=あると" },
+      { combi: "半年記念", name: "YOSH!NO", img: "https://placehold.jp/300x300.png?text=YOSH!NO" },
+      { combi: "ファンファーレと熱狂", name: "こうちゃん", img: "https://placehold.jp/300x300.png?text=こうちゃん" },
+      { combi: "ファンファーレと熱狂", name: "奥慎太郎", img: "https://placehold.jp/300x300.png?text=奥慎太郎" }
+    ];
+
+    // マージソート・トーナメントロジック
+    let subArrays = [];
+    let currentMerged = [];
+    let leftArr = [], rightArr = [];
+    let leftIdx = 0, rightIdx = 0;
+    let stepCount = 0;
+
+    function init() {
+      // 候補順をランダムシャッフル
+      const shuffled = [...candidates].sort(() => Math.random() - 0.5);
+      subArrays = shuffled.map(item => [item]);
+      nextPair();
+    }
+
+    function nextPair() {
+      if (leftArr.length === 0 && rightArr.length === 0) {
+        if (subArrays.length === 1) {
+          finish(subArrays[0]);
+          return;
+        }
+        leftArr = subArrays.shift();
+        rightArr = subArrays.shift();
+        leftIdx = 0;
+        rightIdx = 0;
+        currentMerged = [];
+      }
+
+      if (leftIdx >= leftArr.length) {
+        currentMerged.push(...rightArr.slice(rightIdx));
+        finishSubArray();
+        return;
+      }
+      if (rightIdx >= rightArr.length) {
+        currentMerged.push(...leftArr.slice(leftIdx));
+        finishSubArray();
+        return;
+      }
+
+      stepCount++;
+      document.getElementById('progress').innerText = `比較中：第 ${stepCount} 問`;
+
+      const a = leftArr[leftIdx];
+      const b = rightArr[rightIdx];
+
+      document.getElementById('img-a').src = a.img;
+      document.getElementById('combi-a').innerText = a.combi;
+      document.getElementById('name-a').innerText = a.name;
+
+      document.getElementById('img-b').src = b.img;
+      document.getElementById('combi-b').innerText = b.combi;
+      document.getElementById('name-b').innerText = b.name;
+    }
+
+    function choose(val) {
+      if (val === 0) {
+        currentMerged.push(leftArr[leftIdx++]);
+      } else {
+        currentMerged.push(rightArr[rightIdx++]);
+      }
+      nextPair();
+    }
+
+    function finishSubArray() {
+      subArrays.push(currentMerged);
+      leftArr = [];
+      rightArr = [];
+      nextPair();
+    }
+
+    function finish(sortedList) {
+      document.getElementById('battle-view').style.display = 'none';
+      document.getElementById('progress').innerText = "ソート完了！";
+      document.getElementById('result-view').style.display = 'block';
+
+      const grid = document.getElementById('grid');
+      grid.innerHTML = '';
+
+      // 上位9名を取り出し
+      const top9 = sortedList.slice(0, 9);
+      top9.forEach((item, i) => {
+        const itemEl = document.createElement('div');
+        itemEl.className = 'grid-item';
+        itemEl.innerHTML = `
+          <img src="${item.img}" crossorigin="anonymous">
+          <div class="grid-label">
+            <span class="rank">${i + 1}</span>${item.name}
+          </div>
+        `;
+        grid.appendChild(itemEl);
+      });
+    }
+
+    function saveImage() {
+      const target = document.getElementById('capture-area');
+      html2canvas(target, { scale: 2, useCORS: true }).then(canvas => {
+        const a = document.createElement('a');
+        a.download = 'suki-kao-9.png';
+        a.href = canvas.toDataURL('image/png');
+        a.click();
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>
